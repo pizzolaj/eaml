@@ -1,0 +1,1567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EAML Investigations — CIBC</title>
+<style>
+/* ──────────────── Whitney font ──────────────── */
+@font-face { font-family: "Whitney"; font-weight: 400; font-style: normal;
+  src: url("fonts/Whitney-Book.otf") format("opentype"); }
+@font-face { font-family: "Whitney"; font-weight: 500; font-style: normal;
+  src: url("fonts/Whitney-Medium.otf") format("opentype"); }
+@font-face { font-family: "Whitney"; font-weight: 600; font-style: normal;
+  src: url("fonts/Whitney-Semibold.otf") format("opentype"); }
+
+/* ──────────────── True North tokens ──────────────── */
+:root {
+  --color-red: #C41F3E;
+  --color-red-dark: #A01830;
+  --color-burgundy: #8B1D41;
+  --color-charcoal: #383B3E;
+  --color-grey-100: #FFFFFF;
+  --color-grey-200: #F2F3F2;
+  --color-grey-300: #E8E8E6;
+  --color-grey-400: #D9D9D6;
+  --color-grey-500: #BBBCBC;
+  --color-grey-600: #86888A;
+  --color-grey-700: #606366;
+  --color-error: #C41F3E;
+  --color-error-bg: #FAF1F3;
+  --color-warning: #A35F00;
+  --color-warning-bg: #FFF3D6;
+  --color-success: #397952;
+  --color-success-bg: #E7F2ED;
+  --color-info: #0767A8;
+  --color-info-bg: #DEE9F7;
+
+  --text-primary: var(--color-charcoal);
+  --text-secondary: var(--color-grey-700);
+  --text-tertiary: var(--color-grey-600);
+  --bg-app: var(--color-grey-200);
+  --bg-surface: var(--color-grey-100);
+  --bg-selected: var(--color-grey-300);
+
+  --border-default: var(--color-grey-400);
+
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+  --shadow-md: 0 3px 7px rgba(0,0,0,0.12);
+  --shadow-hover: 0 4px 12px rgba(0,0,0,0.20);
+
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+  --space-5: 20px; --space-6: 24px; --space-8: 32px; --space-10: 40px;
+  --space-12: 48px;
+
+  --font-sans: "Whitney", "Helvetica Neue", Helvetica, Arial, sans-serif;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --dur-fast: 150ms;
+  --dur-med: 200ms;
+  --dur-slow: 300ms;
+}
+
+/* ──────────────── Base ──────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; height: 100%; }
+body {
+  font-family: var(--font-sans);
+  font-size: 17px;
+  line-height: 24px;
+  color: var(--text-primary);
+  background: var(--bg-app);
+  -webkit-font-smoothing: antialiased;
+}
+button { font-family: inherit; cursor: pointer; }
+input, textarea, select { font-family: inherit; font-size: 15px; color: var(--text-primary); }
+
+/* ──────────────── App shell ──────────────── */
+.app {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  min-height: 100vh;
+}
+.app-nav {
+  background: var(--color-grey-100);
+  border-right: 1px solid var(--border-default);
+  padding: var(--space-5) var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.brand {
+  display: flex; align-items: center; gap: var(--space-2);
+  padding: var(--space-2) var(--space-3) var(--space-5);
+  border-bottom: 1px solid var(--border-default);
+  margin-bottom: var(--space-3);
+}
+.brand-logo { height: 24px; }
+.brand-product {
+  font-weight: 600; font-size: 13px; letter-spacing: 0.04em;
+  color: var(--color-charcoal);
+}
+.nav-section-label {
+  font-size: 12px; font-weight: 600; letter-spacing: 0.06em;
+  color: var(--text-tertiary); text-transform: uppercase;
+  padding: var(--space-3) var(--space-3) var(--space-1);
+}
+.nav-item {
+  display: flex; align-items: center; gap: var(--space-3);
+  padding: var(--space-3);
+  border-radius: var(--radius-sm);
+  font-size: 15px; font-weight: 500;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out);
+  border: none; background: none; text-align: left;
+  width: 100%;
+}
+.nav-item:hover { background: var(--bg-selected); }
+.nav-item.active { background: var(--bg-selected); color: var(--color-red); }
+.nav-item .icon { width: 20px; height: 20px; flex-shrink: 0; }
+
+.app-main {
+  display: flex; flex-direction: column;
+  min-width: 0; min-height: 100vh;
+  background: var(--bg-app);
+}
+
+/* ──────────────── Main top bar ──────────────── */
+.topbar {
+  background: var(--color-grey-100);
+  border-bottom: 1px solid var(--border-default);
+  padding: var(--space-4) var(--space-8);
+  display: flex; align-items: center; justify-content: space-between;
+  min-height: 64px;
+}
+.topbar-title { font-size: 21px; font-weight: 500; color: var(--text-primary); }
+.topbar-meta { font-size: 13px; color: var(--text-secondary); }
+.user-chip {
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  font-size: 13px; color: var(--text-secondary);
+}
+.avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--color-burgundy); color: #fff;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 600;
+}
+
+/* ──────────────── Generic content area ──────────────── */
+.content { padding: var(--space-8); }
+.content-narrow { max-width: 1080px; }
+
+/* ──────────────── Buttons ──────────────── */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: var(--space-2);
+  padding: 9px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 15px; font-weight: 500;
+  border: 1px solid transparent;
+  background: var(--color-grey-100);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all var(--dur-fast) var(--ease-out);
+}
+.btn:hover { background: var(--bg-selected); }
+.btn-primary {
+  background: var(--color-red); color: #fff; border-color: var(--color-red);
+}
+.btn-primary:hover { background: var(--color-red-dark); border-color: var(--color-red-dark); }
+.btn-primary:disabled {
+  background: var(--color-grey-500); border-color: var(--color-grey-500); cursor: not-allowed;
+}
+.btn-ghost {
+  border-color: var(--border-default); background: transparent;
+}
+.btn-ghost:hover { background: var(--bg-selected); }
+.btn-sm { padding: 5px 10px; font-size: 13px; gap: 4px; }
+.btn-icon { padding: 8px; }
+
+/* ──────────────── Pills / Badges ──────────────── */
+.badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 8px; border-radius: var(--radius-pill);
+  font-size: 12px; font-weight: 500; line-height: 18px;
+  border: 1px solid transparent;
+}
+.badge-low { background: var(--color-success-bg); color: var(--color-success); }
+.badge-med { background: var(--color-warning-bg); color: var(--color-warning); }
+.badge-high { background: var(--color-error-bg); color: var(--color-error); }
+.badge-info { background: var(--color-info-bg); color: var(--color-info); }
+.badge-ai {
+  background: #F5E9F4; color: var(--color-burgundy);
+  border-color: #E5C9E0;
+}
+.badge-default { background: var(--color-grey-300); color: var(--text-primary); }
+
+/* ──────────────── Cards ──────────────── */
+.card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
+}
+
+/* ──────────────── DASHBOARD ──────────────── */
+.dash-header {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  margin-bottom: var(--space-6);
+}
+.dash-title { font-size: 31px; font-weight: 600; line-height: 36px; margin: 0; }
+.dash-subtitle { font-size: 15px; color: var(--text-secondary); margin: 4px 0 0; }
+
+.tabs {
+  display: flex; gap: var(--space-1);
+  border-bottom: 1px solid var(--border-default);
+  margin-bottom: var(--space-5);
+}
+.tab {
+  background: none; border: none; cursor: pointer;
+  padding: var(--space-3) var(--space-5);
+  font-family: inherit; font-size: 15px; font-weight: 500;
+  color: var(--text-secondary);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color var(--dur-fast) var(--ease-out),
+              border-color var(--dur-fast) var(--ease-out);
+}
+.tab:hover { color: var(--text-primary); }
+.tab.active {
+  color: var(--color-red); border-bottom-color: var(--color-red);
+}
+.tab-count {
+  margin-left: var(--space-2);
+  background: var(--color-grey-300); color: var(--text-secondary);
+  padding: 1px 8px; border-radius: var(--radius-pill);
+  font-size: 12px; font-weight: 600;
+}
+.tab.active .tab-count {
+  background: var(--color-red); color: #fff;
+}
+
+.toolbar-row {
+  display: flex; gap: var(--space-3); align-items: center;
+  margin-bottom: var(--space-5);
+}
+.search {
+  position: relative; flex: 1; max-width: 360px;
+}
+.search input {
+  width: 100%; padding: 9px 14px 9px 38px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  outline: none;
+  transition: border-color var(--dur-fast) var(--ease-out);
+}
+.search input:focus { border-color: var(--color-red); }
+.search-icon {
+  position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+  color: var(--text-tertiary); pointer-events: none;
+}
+
+.cases-table {
+  width: 100%;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border-collapse: separate; border-spacing: 0;
+}
+.cases-table th {
+  text-align: left;
+  font-size: 13px; font-weight: 600;
+  color: var(--text-tertiary);
+  text-transform: uppercase; letter-spacing: 0.06em;
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-grey-200);
+  border-bottom: 1px solid var(--border-default);
+  white-space: nowrap;
+}
+.cases-table td {
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--border-default);
+  font-size: 15px;
+  vertical-align: middle;
+}
+.cases-table tr:last-child td { border-bottom: none; }
+.cases-table tr.case-row { cursor: pointer; transition: background var(--dur-fast) var(--ease-out); }
+.cases-table tr.case-row:hover { background: var(--color-grey-200); }
+.case-id-cell { font-weight: 600; }
+.case-source-cell { color: var(--text-secondary); }
+.progress-bar {
+  width: 100px; height: 6px;
+  background: var(--color-grey-300);
+  border-radius: var(--radius-pill); overflow: hidden;
+}
+.progress-fill { height: 100%; background: var(--color-burgundy); border-radius: var(--radius-pill); transition: width var(--dur-slow) var(--ease-out); }
+.progress-text { font-size: 12px; color: var(--text-tertiary); margin-top: 4px; }
+
+.empty-state {
+  padding: var(--space-12); text-align: center; color: var(--text-secondary);
+}
+
+/* ──────────────── CASE PAGE: Wizard hub ──────────────── */
+.case-header {
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-default);
+  padding: var(--space-5) var(--space-8);
+}
+.case-meta-row {
+  display: flex; gap: var(--space-6);
+  font-size: 13px; color: var(--text-secondary);
+  margin-top: var(--space-2);
+}
+.case-meta-row strong { color: var(--text-primary); font-weight: 600; }
+.breadcrumb {
+  font-size: 13px; color: var(--text-tertiary);
+  margin-bottom: var(--space-2);
+}
+.breadcrumb-link { color: var(--text-link, var(--color-info)); cursor: pointer; }
+.breadcrumb-link:hover { text-decoration: underline; }
+
+.wizard-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--space-4);
+  margin-top: var(--space-5);
+}
+.wizard-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease-out),
+              box-shadow var(--dur-fast) var(--ease-out),
+              transform var(--dur-fast) var(--ease-out);
+  position: relative;
+}
+.wizard-card:hover {
+  border-color: var(--color-red);
+  box-shadow: var(--shadow-hover);
+}
+.wizard-card .num {
+  font-size: 12px; font-weight: 600; letter-spacing: 0.06em;
+  color: var(--text-tertiary); text-transform: uppercase;
+  margin-bottom: var(--space-2);
+}
+.wizard-card h3 {
+  font-size: 19px; font-weight: 500;
+  margin: 0 0 var(--space-2);
+}
+.wizard-card p {
+  font-size: 13px; color: var(--text-secondary);
+  margin: 0 0 var(--space-3); line-height: 18px;
+}
+.wizard-card .status-line {
+  display: flex; align-items: center; gap: var(--space-2);
+  font-size: 13px; color: var(--text-tertiary);
+}
+.dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--color-grey-400);
+}
+.dot-progress { background: var(--color-warning); }
+.dot-done { background: var(--color-success); }
+
+/* ──────────────── WIZARD layout ──────────────── */
+.wizard-layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  flex: 1; min-height: 0;
+}
+.wizard-side {
+  background: var(--color-grey-100);
+  border-right: 1px solid var(--border-default);
+  padding: var(--space-5) var(--space-3);
+}
+.wizard-side .case-mini {
+  padding: var(--space-2) var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border-default);
+  margin-bottom: var(--space-3);
+}
+.wizard-side .case-mini .case-id-mini { font-weight: 600; font-size: 15px; }
+.wizard-side .case-mini .case-sub-mini { font-size: 13px; color: var(--text-secondary); }
+.step-list { display: flex; flex-direction: column; gap: 2px; }
+.step {
+  display: flex; gap: var(--space-3); align-items: center;
+  padding: var(--space-3);
+  border-radius: var(--radius-sm);
+  background: none; border: none; text-align: left;
+  cursor: pointer; font-family: inherit;
+  font-size: 14px; font-weight: 500; color: var(--text-primary);
+  transition: background var(--dur-fast) var(--ease-out);
+  width: 100%;
+}
+.step:hover { background: var(--bg-selected); }
+.step.active { background: var(--bg-selected); }
+.step.active .step-num { background: var(--color-red); color: #fff; }
+.step.complete .step-num {
+  background: var(--color-success-bg); color: var(--color-success); border: none;
+}
+.step-num {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--color-grey-200);
+  border: 1px solid var(--border-default);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 600; color: var(--text-secondary);
+  flex-shrink: 0;
+}
+.step-label { flex: 1; }
+
+.wizard-content {
+  flex: 1; min-width: 0;
+  padding: var(--space-8);
+  overflow-y: auto;
+}
+.wizard-h1 { font-size: 27px; font-weight: 500; margin: 0 0 var(--space-1); line-height: 32px; }
+.wizard-h-sub { font-size: 15px; color: var(--text-secondary); margin: 0 0 var(--space-6); }
+.wizard-section-h { font-size: 17px; font-weight: 600; margin: var(--space-6) 0 var(--space-3); }
+
+/* ──────────────── Forms ──────────────── */
+.form-group { margin-bottom: var(--space-4); }
+.form-label {
+  display: block;
+  font-size: 13px; font-weight: 600; color: var(--text-secondary);
+  margin-bottom: var(--space-1);
+}
+.form-input, .form-textarea, .form-select {
+  width: 100%; padding: 9px 12px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  outline: none;
+  transition: border-color var(--dur-fast) var(--ease-out);
+}
+.form-input:focus, .form-textarea:focus, .form-select:focus {
+  border-color: var(--color-red);
+  box-shadow: 0 0 0 3px rgba(196, 31, 62, 0.12);
+}
+.form-textarea { resize: vertical; min-height: 96px; line-height: 22px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+.input-prefilled {
+  background: var(--color-grey-200); border-color: var(--border-default);
+}
+.input-prefilled-hint {
+  font-size: 12px; color: var(--text-tertiary);
+  display: flex; align-items: center; gap: 4px;
+  margin-top: 4px;
+}
+
+/* ──────────────── Wizard footer (next/prev) ──────────────── */
+.wizard-footer {
+  margin-top: var(--space-8);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--border-default);
+  display: flex; justify-content: space-between;
+}
+
+/* ──────────────── AI: Ready state card ──────────────── */
+.ai-ready-card {
+  background: linear-gradient(180deg, #FBEFEC 0%, #FFFFFF 100%);
+  border: 1px solid #E8C7C0;
+  border-radius: var(--radius-md);
+  padding: var(--space-6);
+  margin-top: var(--space-4);
+}
+.ai-ready-card h3 {
+  font-size: 19px; font-weight: 500;
+  margin: 0 0 var(--space-2);
+  display: flex; align-items: center; gap: var(--space-2);
+}
+.ai-ready-card .preview {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-4);
+  margin: var(--space-4) 0;
+  font-size: 13px;
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-2) var(--space-5);
+}
+.ai-ready-card .preview .item { display: flex; gap: var(--space-2); align-items: center; }
+.ai-ready-card .preview .label { color: var(--text-secondary); }
+.ai-ready-card .preview .val { font-weight: 600; }
+.ai-disclaimer {
+  font-size: 12px; color: var(--text-tertiary);
+  margin-top: var(--space-3); display: flex; align-items: center; gap: 4px;
+}
+
+/* ──────────────── AI: Generating state ──────────────── */
+.ai-generating {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: var(--space-6);
+  margin-top: var(--space-4);
+}
+.ai-pulse {
+  display: inline-block; width: 8px; height: 8px;
+  background: var(--color-red); border-radius: 50%;
+  animation: pulse 1.4s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.3); }
+}
+.gen-step {
+  display: flex; align-items: center; gap: var(--space-3);
+  padding: var(--space-2) 0;
+  font-size: 14px; color: var(--text-secondary);
+  opacity: 0;
+  animation: fadeInUp 250ms var(--ease-out) forwards;
+}
+.gen-step.complete { color: var(--text-primary); }
+.gen-step.active { color: var(--text-primary); font-weight: 500; }
+.gen-step .check {
+  width: 18px; height: 18px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+}
+.gen-step.complete .check { background: var(--color-success); color: #fff; }
+.gen-step.active .check { background: transparent; }
+.gen-step:nth-child(1) { animation-delay: 0ms; }
+.gen-step:nth-child(2) { animation-delay: 600ms; }
+.gen-step:nth-child(3) { animation-delay: 1300ms; }
+.gen-step:nth-child(4) { animation-delay: 2000ms; }
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ──────────────── AI: Review state ──────────────── */
+.narrative-toolbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  border-bottom: none;
+}
+.narrative-toolbar-actions { display: flex; gap: var(--space-2); }
+.narrative-doc {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-top: none;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  padding: var(--space-6);
+}
+.narrative-doc h4 {
+  font-size: 15px; font-weight: 600;
+  margin: var(--space-5) 0 var(--space-2);
+  color: var(--text-primary);
+}
+.narrative-doc h4:first-child { margin-top: 0; }
+.narrative-para {
+  font-size: 15px; line-height: 24px;
+  background: rgba(196, 31, 62, 0.04);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid rgba(196, 31, 62, 0.3);
+  margin: 0 0 var(--space-2);
+  position: relative;
+  transition: background var(--dur-med) var(--ease-out),
+              border-color var(--dur-med) var(--ease-out);
+}
+.narrative-para.touched {
+  background: transparent; border-left-color: transparent;
+  padding-left: var(--space-1);
+}
+.narrative-para .para-actions {
+  position: absolute; top: var(--space-2); right: var(--space-2);
+  opacity: 0; transition: opacity var(--dur-fast) var(--ease-out);
+}
+.narrative-para:hover .para-actions { opacity: 1; }
+
+.cite {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 18px; height: 18px; border-radius: var(--radius-xs);
+  background: var(--color-red); color: #fff;
+  font-size: 11px; font-weight: 700; line-height: 1;
+  cursor: pointer; vertical-align: 2px;
+  margin: 0 2px;
+  transition: background var(--dur-fast) var(--ease-out);
+}
+.cite:hover { background: var(--color-burgundy); }
+.cite.active { background: var(--color-burgundy); box-shadow: 0 0 0 2px rgba(139, 29, 65, 0.2); }
+
+.gaps-panel {
+  background: var(--color-warning-bg);
+  border: 1px solid #E8C572;
+  border-radius: var(--radius-md);
+  padding: var(--space-4) var(--space-5);
+  margin-top: var(--space-4);
+}
+.gaps-panel h4 {
+  margin: 0 0 var(--space-2); font-size: 15px; font-weight: 600;
+  color: var(--color-warning);
+  display: flex; align-items: center; gap: var(--space-2);
+}
+.gaps-panel ul {
+  margin: 0; padding-left: var(--space-5);
+  font-size: 14px; color: var(--text-primary);
+}
+.gaps-panel ul li { margin-bottom: var(--space-2); line-height: 20px; }
+.gaps-panel ul li:last-child { margin-bottom: 0; }
+.gaps-panel .footnote {
+  font-size: 12px; color: var(--text-tertiary);
+  margin-top: var(--space-3); font-style: italic;
+}
+.inline-link { color: var(--color-info); text-decoration: underline; cursor: pointer; }
+
+/* ──────────────── Evidence rail ──────────────── */
+.review-layout {
+  display: grid; grid-template-columns: 1fr 320px;
+  gap: var(--space-5);
+}
+.evidence-rail {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  align-self: flex-start;
+  position: sticky; top: var(--space-5);
+}
+.evidence-rail h4 { font-size: 15px; font-weight: 600; margin: 0 0 var(--space-1); }
+.evidence-rail .sub { font-size: 12px; color: var(--text-tertiary); margin-bottom: var(--space-3); }
+.ev-item {
+  display: flex; gap: var(--space-2); padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out);
+}
+.ev-item:hover { background: var(--bg-selected); }
+.ev-item.active {
+  background: rgba(196, 31, 62, 0.08);
+  outline: 1px solid rgba(196, 31, 62, 0.3);
+}
+.ev-cite {
+  width: 22px; height: 22px; border-radius: var(--radius-xs);
+  background: var(--color-red); color: #fff;
+  font-size: 11px; font-weight: 700;
+  display: inline-flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.ev-body { font-size: 13px; }
+.ev-title { font-weight: 600; line-height: 18px; }
+.ev-meta { font-size: 12px; color: var(--text-tertiary); margin-top: 2px; }
+
+/* ──────────────── Attest screen ──────────────── */
+.attest-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: var(--space-8);
+  max-width: 720px;
+}
+.attest-card .heading {
+  font-size: 24px; font-weight: 500; margin: 0 0 var(--space-2);
+}
+.attest-card .summary {
+  font-size: 15px; color: var(--text-secondary);
+  margin-bottom: var(--space-5);
+}
+.attest-summary-list {
+  background: var(--color-grey-200);
+  border-radius: var(--radius-sm);
+  padding: var(--space-4);
+  margin-bottom: var(--space-5);
+  font-size: 13px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2) var(--space-5);
+}
+.attest-summary-list .label { color: var(--text-secondary); }
+.attest-summary-list .val { font-weight: 600; }
+.attest-checkbox-row {
+  display: flex; gap: var(--space-3);
+  align-items: flex-start;
+  padding: var(--space-4);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--space-4);
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease-out),
+              background var(--dur-fast) var(--ease-out);
+}
+.attest-checkbox-row:hover { background: var(--color-grey-200); }
+.attest-checkbox-row input[type="checkbox"] {
+  margin-top: 2px;
+  width: 18px; height: 18px;
+  accent-color: var(--color-red);
+  flex-shrink: 0;
+}
+.attest-statement { font-size: 15px; line-height: 22px; }
+.attest-statement strong { font-weight: 600; }
+.confidence-row {
+  display: flex; gap: var(--space-2); margin-top: var(--space-1);
+}
+.conf-pill {
+  padding: 6px 14px; border-radius: var(--radius-pill);
+  border: 1px solid var(--border-default);
+  background: var(--bg-surface); cursor: pointer;
+  font-size: 14px; font-family: inherit;
+  transition: all var(--dur-fast) var(--ease-out);
+}
+.conf-pill.selected {
+  background: var(--color-red); color: #fff; border-color: var(--color-red);
+}
+
+/* ──────────────── Done state ──────────────── */
+.done-card {
+  text-align: center; padding: var(--space-12) var(--space-6);
+  max-width: 560px; margin: var(--space-12) auto;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+}
+.done-icon {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: var(--color-success-bg); color: var(--color-success);
+  display: inline-flex; align-items: center; justify-content: center;
+  margin-bottom: var(--space-4);
+  font-size: 32px;
+}
+.done-card h2 { font-size: 27px; font-weight: 500; margin: 0 0 var(--space-2); }
+.done-card p { color: var(--text-secondary); margin: 0 0 var(--space-5); }
+.done-actions { display: flex; gap: var(--space-3); justify-content: center; }
+.done-meta {
+  margin-top: var(--space-6);
+  font-size: 12px; color: var(--text-tertiary);
+}
+
+/* ──────────────── Misc ──────────────── */
+.fade-in { animation: fadeIn 250ms var(--ease-out); }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+.page-section { display: none; }
+.page-section.active { display: block; }
+
+.icon { width: 16px; height: 16px; flex-shrink: 0; }
+
+/* Tooltip popover for citation */
+.cite-popover {
+  position: absolute;
+  background: var(--color-charcoal); color: #fff;
+  border-radius: var(--radius-sm);
+  padding: var(--space-3); font-size: 13px;
+  max-width: 280px; line-height: 18px;
+  box-shadow: var(--shadow-lg);
+  z-index: 100;
+  pointer-events: none;
+  display: none;
+}
+.cite-popover.visible { display: block; animation: fadeIn 150ms var(--ease-out); }
+.cite-popover .pop-title { font-weight: 600; margin-bottom: 4px; }
+.cite-popover .pop-meta { color: var(--color-grey-500); font-size: 11px; }
+
+/* Helpers */
+.muted { color: var(--text-tertiary); }
+.spacer-sm { height: var(--space-3); }
+
+/* ──────────────── Mobile fallback ──────────────── */
+@media (max-width: 900px) {
+  .app { grid-template-columns: 1fr; }
+  .app-nav { display: none; }
+  .review-layout { grid-template-columns: 1fr; }
+  .wizard-layout { grid-template-columns: 1fr; }
+  .form-row { grid-template-columns: 1fr; }
+  .content { padding: var(--space-4); }
+  .topbar { padding: var(--space-3) var(--space-4); }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- ──────────────── App nav ──────────────── -->
+  <nav class="app-nav">
+    <div class="brand">
+      <svg class="brand-logo" viewBox="0 0 71 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <text x="0" y="19" font-family="Whitney, sans-serif" font-weight="600" font-size="22" fill="#C41F3E">CIBC</text>
+      </svg>
+      <div class="brand-product">EAML Investigations</div>
+    </div>
+
+    <div class="nav-section-label">Workspace</div>
+    <button class="nav-item active" data-nav="dashboard" onclick="goDashboard()">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+      Dashboard
+    </button>
+    <button class="nav-item">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/><path d="M12 7v5l3 3"/></svg>
+      My queue
+    </button>
+    <button class="nav-item">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+      Templates
+    </button>
+
+    <div class="nav-section-label">Tools</div>
+    <button class="nav-item">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      Research assistant
+    </button>
+    <button class="nav-item">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M5 9l7-7 7 7"/></svg>
+      Reports
+    </button>
+
+    <div style="flex: 1;"></div>
+    <button class="nav-item">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Settings
+    </button>
+  </nav>
+
+  <!-- ──────────────── Main ──────────────── -->
+  <main class="app-main">
+
+    <!-- ════════════════ DASHBOARD ════════════════ -->
+    <section class="page-section active" id="page-dashboard">
+      <div class="topbar">
+        <div>
+          <div class="topbar-title">Investigations Dashboard</div>
+        </div>
+        <div class="user-chip">
+          <span>Rachel Choong</span>
+          <span class="avatar">RC</span>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="dash-header">
+          <div>
+            <h1 class="dash-title">Cases</h1>
+            <p class="dash-subtitle">Triage, investigate, and close cases assigned to you or your team.</p>
+          </div>
+          <button class="btn btn-primary">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+            New case
+          </button>
+        </div>
+
+        <div class="tabs" id="dash-tabs">
+          <button class="tab active" data-status="backlog" onclick="switchTab(this)">Backlog <span class="tab-count">6</span></button>
+          <button class="tab" data-status="inprogress" onclick="switchTab(this)">In progress <span class="tab-count">6</span></button>
+          <button class="tab" data-status="done" onclick="switchTab(this)">Done <span class="tab-count">6</span></button>
+        </div>
+
+        <div class="toolbar-row">
+          <div class="search">
+            <svg class="search-icon icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <input type="search" placeholder="Search by case ID, client, or investigator">
+          </div>
+          <button class="btn btn-ghost">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="9" y1="18" x2="15" y2="18"/></svg>
+            Filter
+          </button>
+          <button class="btn btn-ghost">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M7 12h10M11 18h2"/></svg>
+            Sort: Due date
+          </button>
+        </div>
+
+        <div id="dash-table-wrap"></div>
+      </div>
+    </section>
+
+    <!-- ════════════════ CASE HUB ════════════════ -->
+    <section class="page-section" id="page-case">
+      <div class="case-header">
+        <div class="breadcrumb">
+          <span class="breadcrumb-link" onclick="goDashboard()">Dashboard</span>
+          <span> &nbsp;›&nbsp; </span>
+          <span>Case <strong id="case-id-bc">C20003</strong></span>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: var(--space-4);">
+          <div>
+            <h1 style="font-size: 27px; font-weight: 500; margin: 0;">Smith, J. — Wires</h1>
+            <div class="case-meta-row">
+              <div>Case ID: <strong id="case-id-meta">C20003</strong></div>
+              <div>Source: <strong>Production Order</strong></div>
+              <div>Assigned: <strong>Dana Patel</strong></div>
+              <div>Due: <strong>2026-05-05</strong></div>
+              <div>Priority: <span class="badge badge-high">High</span></div>
+            </div>
+          </div>
+          <div style="display: flex; gap: var(--space-2);">
+            <button class="btn btn-ghost btn-sm">Save and exit</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="card" style="margin-bottom: var(--space-5); display: flex; gap: var(--space-4); align-items: center;">
+          <div style="width: 48px; height: 48px; border-radius: var(--radius-sm); background: rgba(196, 31, 62, 0.08); color: var(--color-red); display: inline-flex; align-items: center; justify-content: center;">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          </div>
+          <div style="flex: 1;">
+            <div style="font-weight: 600; font-size: 15px;">Case progress</div>
+            <div style="font-size: 13px; color: var(--text-secondary);">Complete each section in order. Evidence comes first; everything else builds on it.</div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-size: 13px; color: var(--text-tertiary);">2 of 5 sections complete</div>
+            <div class="progress-bar" style="width: 160px; margin-top: 6px;"><div class="progress-fill" style="width: 40%;"></div></div>
+          </div>
+        </div>
+
+        <div class="wizard-grid">
+          <button class="wizard-card" onclick="goEvidence()">
+            <div class="num">Section 1</div>
+            <h3>Case Evidence</h3>
+            <p>Collect and document evidence across ECIF, Actimize, Adverse Media, Open Source, and other sources.</p>
+            <div class="status-line"><span class="dot dot-progress"></span>In progress · 8 of 14 tabs</div>
+          </button>
+
+          <button class="wizard-card" onclick="goSTRStart()">
+            <div class="num">Section 2</div>
+            <h3>STR Assessment</h3>
+            <p>Build the Suspicious Transaction Report narrative for filing with FINTRAC.</p>
+            <div class="status-line"><span class="dot"></span>Not started · 10 steps</div>
+          </button>
+
+          <button class="wizard-card">
+            <div class="num">Section 3</div>
+            <h3>Case Closure Assessment</h3>
+            <p>Document review findings, decision, and any divestiture or account-closure actions.</p>
+            <div class="status-line"><span class="dot"></span>Not started · 7 steps</div>
+          </button>
+
+          <button class="wizard-card">
+            <div class="num">Section 4</div>
+            <h3>Transaction Summary <span class="muted" style="font-weight: 400;">(HREDD)</span></h3>
+            <p>Required only for High-Risk Enhanced Due Diligence cases.</p>
+            <div class="status-line"><span class="dot" style="background: var(--color-grey-300);"></span>Not applicable for this case</div>
+          </button>
+
+          <button class="wizard-card">
+            <div class="num">Section 5</div>
+            <h3>Non-Account Review <span class="muted" style="font-weight: 400;">(HRCEDD)</span></h3>
+            <p>Required for high-risk clients with no active accounts under monitoring.</p>
+            <div class="status-line"><span class="dot" style="background: var(--color-grey-300);"></span>Not applicable for this case</div>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════════ CASE EVIDENCE ════════════════ -->
+    <section class="page-section" id="page-evidence">
+      <div class="case-header">
+        <div class="breadcrumb">
+          <span class="breadcrumb-link" onclick="goDashboard()">Dashboard</span>
+          <span> &nbsp;›&nbsp; </span>
+          <span class="breadcrumb-link" onclick="goCase()">Case C20003</span>
+          <span> &nbsp;›&nbsp; </span>
+          <span>Case Evidence</span>
+        </div>
+        <h1 style="font-size: 27px; font-weight: 500; margin: var(--space-1) 0 0;">Case Evidence — Smith, J.</h1>
+      </div>
+
+      <div class="wizard-layout">
+        <aside class="wizard-side">
+          <div class="case-mini">
+            <div class="case-id-mini">CASE C20003</div>
+            <div class="case-sub-mini">Wires · High priority</div>
+          </div>
+          <div class="step-list">
+            <button class="step complete"><span class="step-num">✓</span><span class="step-label">Focal Client ECIF</span></button>
+            <button class="step active"><span class="step-num">2</span><span class="step-label">Actimize</span></button>
+            <button class="step"><span class="step-num">3</span><span class="step-label">Adverse Media</span></button>
+            <button class="step"><span class="step-num">4</span><span class="step-label">Open Source</span></button>
+            <button class="step"><span class="step-num">5</span><span class="step-label">Other Supporting Evidence</span></button>
+            <button class="step"><span class="step-num">6</span><span class="step-label">Wires (SIU)</span></button>
+            <button class="step"><span class="step-num">7</span><span class="step-label">PESA / Signatures</span></button>
+            <button class="step"><span class="step-num">8</span><span class="step-label">World Check</span></button>
+            <button class="step"><span class="step-num">9</span><span class="step-label">COINS</span></button>
+            <button class="step"><span class="step-num">10</span><span class="step-label">Significant Relevant Parties</span></button>
+            <button class="step"><span class="step-num">11</span><span class="step-label">Joint Account Holder</span></button>
+            <button class="step"><span class="step-num">12</span><span class="step-label">Wood Gundy</span></button>
+            <button class="step"><span class="step-num">13</span><span class="step-label">Fenergo</span></button>
+          </div>
+        </aside>
+
+        <div class="wizard-content">
+          <h1 class="wizard-h1">Actimize</h1>
+          <p class="wizard-h-sub">Upload screenshots and add a description for each. Evidence here informs the Transaction Activity narrative.</p>
+
+          <div class="card" style="margin-bottom: var(--space-4);">
+            <h3 class="wizard-section-h" style="margin-top: 0;">Linked alerts</h3>
+            <div style="display: flex; gap: var(--space-3); align-items: center; padding: var(--space-3); background: var(--color-grey-200); border-radius: var(--radius-sm);">
+              <span class="badge badge-info">AC-998742</span>
+              <span style="flex: 1; font-size: 14px;">Rapid in-and-out wire activity · Triggered 2026-03-14</span>
+              <button class="btn btn-sm btn-ghost">View alert</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 class="wizard-section-h" style="margin-top: 0;">Screenshots</h3>
+            <div style="border: 2px dashed var(--border-default); border-radius: var(--radius-sm); padding: var(--space-8); text-align: center; color: var(--text-tertiary); font-size: 14px;">
+              <svg class="icon" style="width: 32px; height: 32px; margin-bottom: var(--space-2);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+              <div>Drag and drop screenshots here, or <span class="inline-link">choose files</span></div>
+              <div style="font-size: 12px; margin-top: 4px;">PNG or JPG · up to 10 MB each</div>
+            </div>
+
+            <div class="spacer-sm"></div>
+
+            <div style="display: grid; grid-template-columns: 100px 1fr auto; gap: var(--space-4); align-items: flex-start; padding: var(--space-3); border: 1px solid var(--border-default); border-radius: var(--radius-sm); background: var(--color-grey-200);">
+              <div style="width: 100px; height: 100px; background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: var(--radius-xs); display: flex; align-items: center; justify-content: center; color: var(--text-tertiary); font-size: 11px;">Screenshot 1</div>
+              <div>
+                <div class="form-label" style="margin-top: 0;">Description</div>
+                <textarea class="form-textarea" style="min-height: 70px;" placeholder="Describe what's shown in this screenshot…">Actimize alert AC-998742, triggered by typology "Rapid Movement of Funds — Personal." Eleven inbound wires totalling CAD 487,000, dispersed within 48 hours.</textarea>
+              </div>
+              <button class="btn btn-ghost btn-sm">Remove</button>
+            </div>
+          </div>
+
+          <div class="wizard-footer">
+            <button class="btn btn-ghost" onclick="goCase()">← Back to case</button>
+            <div style="display: flex; gap: var(--space-2);">
+              <button class="btn btn-ghost">Save and continue later</button>
+              <button class="btn btn-primary" onclick="goSTRStart()">Save and continue →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════════ STR — Investigator Info ════════════════ -->
+    <section class="page-section" id="page-str-info">
+      <div class="case-header">
+        <div class="breadcrumb">
+          <span class="breadcrumb-link" onclick="goDashboard()">Dashboard</span>
+          <span> &nbsp;›&nbsp; </span>
+          <span class="breadcrumb-link" onclick="goCase()">Case C20003</span>
+          <span> &nbsp;›&nbsp; </span>
+          <span>STR Assessment</span>
+        </div>
+        <h1 style="font-size: 27px; font-weight: 500; margin: var(--space-1) 0 0;">STR Assessment — Smith, J.</h1>
+      </div>
+
+      <div class="wizard-layout">
+        <aside class="wizard-side" id="str-sidebar"></aside>
+        <div class="wizard-content">
+          <h1 class="wizard-h1">Investigator info</h1>
+          <p class="wizard-h-sub">Auto-populated from your CIBC profile and the Case Evidence file. Review and add any unlisted IDs.</p>
+
+          <div class="card">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Investigator</label>
+                <input class="form-input input-prefilled" value="Dana Patel" readonly>
+                <div class="input-prefilled-hint">
+                  <svg class="icon" style="width:12px;height:12px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 1 21h22L12 2zM12 8v6M12 17h.01"/></svg>
+                  From CIBC SSO
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Case ID</label>
+                <input class="form-input input-prefilled" value="C20003_1" readonly>
+                <div class="input-prefilled-hint">
+                  <svg class="icon" style="width:12px;height:12px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
+                  From Case Evidence
+                </div>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">AML ID(s)</label>
+                <input class="form-input input-prefilled" value="AML-7748213; AML-7748214" readonly>
+                <div class="input-prefilled-hint">From Case Evidence</div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">ECIF(s)</label>
+                <input class="form-input input-prefilled" value="ECF-887412339" readonly>
+                <div class="input-prefilled-hint">From Case Evidence</div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Add an ID not listed above (optional)</label>
+              <input class="form-input" placeholder="Type an ID and press Enter">
+              <div class="input-prefilled-hint" style="color: var(--text-tertiary);">Use this if a related AML or ECIF was discovered after evidence was collected.</div>
+            </div>
+          </div>
+
+          <div class="wizard-footer">
+            <button class="btn btn-ghost" onclick="goCase()">← Back to case</button>
+            <button class="btn btn-primary" onclick="goSTRNarrative()">Continue: STR Narrative →</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════════ STR — Narrative (Ready / Generating / Review) ════════════════ -->
+    <section class="page-section" id="page-str-narrative">
+      <div class="case-header">
+        <div class="breadcrumb">
+          <span class="breadcrumb-link" onclick="goDashboard()">Dashboard</span>
+          <span> &nbsp;›&nbsp; </span>
+          <span class="breadcrumb-link" onclick="goCase()">Case C20003</span>
+          <span> &nbsp;›&nbsp; </span>
+          <span>STR Assessment</span>
+        </div>
+        <h1 style="font-size: 27px; font-weight: 500; margin: var(--space-1) 0 0;">STR Assessment — Smith, J.</h1>
+      </div>
+
+      <div class="wizard-layout">
+        <aside class="wizard-side" id="str-sidebar-2"></aside>
+        <div class="wizard-content" id="narrative-host"></div>
+      </div>
+    </section>
+
+    <!-- ════════════════ STR — Attest ════════════════ -->
+    <section class="page-section" id="page-attest">
+      <div class="case-header">
+        <div class="breadcrumb">
+          <span class="breadcrumb-link" onclick="goDashboard()">Dashboard</span>
+          <span> &nbsp;›&nbsp; </span>
+          <span class="breadcrumb-link" onclick="goCase()">Case C20003</span>
+          <span> &nbsp;›&nbsp; </span>
+          <span>STR Assessment · Attestation</span>
+        </div>
+        <h1 style="font-size: 27px; font-weight: 500; margin: var(--space-1) 0 0;">Attest the STR narrative</h1>
+      </div>
+      <div class="content">
+        <div class="attest-card">
+          <div class="summary">
+            Before this STR is finalized for filing, please confirm you've reviewed it and that it accurately represents the evidence on file.
+          </div>
+
+          <div class="attest-summary-list">
+            <div class="label">Case</div><div class="val">C20003 — Smith, J.</div>
+            <div class="label">Narrative length</div><div class="val">432 words, 3 sections</div>
+            <div class="label">Citations</div><div class="val">12 evidence items linked</div>
+            <div class="label">AI assistance used</div><div class="val">Yes — drafted by CAI, edited by you</div>
+            <div class="label">Last edit</div><div class="val">2 minutes ago by Dana Patel</div>
+          </div>
+
+          <label class="attest-checkbox-row" id="attest-1">
+            <input type="checkbox" onchange="toggleAttest()">
+            <div class="attest-statement">
+              I have reviewed the entire narrative. To the best of my knowledge it
+              <strong>accurately reflects the evidence I have reviewed</strong> for this case.
+            </div>
+          </label>
+
+          <label class="attest-checkbox-row" id="attest-2">
+            <input type="checkbox" onchange="toggleAttest()">
+            <div class="attest-statement">
+              I confirm I have addressed each item in the
+              <strong>"AI flagged for your attention"</strong> panel,
+              either by updating the narrative or determining the item is not applicable.
+            </div>
+          </label>
+
+          <div class="form-group" style="margin-top: var(--space-5);">
+            <label class="form-label">Confidence in this filing</label>
+            <div class="confidence-row">
+              <button class="conf-pill" onclick="selectConfidence(this)">High</button>
+              <button class="conf-pill selected" onclick="selectConfidence(this)">Medium</button>
+              <button class="conf-pill" onclick="selectConfidence(this)">Low</button>
+            </div>
+            <div class="input-prefilled-hint" style="color: var(--text-tertiary); margin-top: var(--space-2);">
+              Used internally for QA and CAI feedback. Not part of the FINTRAC filing.
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Notes for reviewer (optional)</label>
+            <textarea class="form-textarea" placeholder="Anything the reviewer should know…"></textarea>
+          </div>
+
+          <div class="wizard-footer" style="margin-top: var(--space-6);">
+            <button class="btn btn-ghost" onclick="goSTRNarrative()">← Back to narrative</button>
+            <button class="btn btn-primary" id="finalize-btn" disabled onclick="finalize()">
+              Submit for management review →
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════════ DONE ════════════════ -->
+    <section class="page-section" id="page-done">
+      <div class="topbar">
+        <div class="topbar-title">Submitted</div>
+      </div>
+      <div class="content">
+        <div class="done-card fade-in">
+          <div class="done-icon">
+            <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>
+          </div>
+          <h2>Submitted for management review</h2>
+          <p>Case C20003 has been submitted to your manager. You'll receive a notification when it's reviewed or returned with feedback.</p>
+          <div class="done-actions">
+            <button class="btn btn-ghost" onclick="goDashboard()">Back to dashboard</button>
+            <button class="btn btn-primary" onclick="goDashboard()">Pick up the next case</button>
+          </div>
+          <div class="done-meta">
+            Filing ID: STR-2026-04-28-C20003 · Logged 2026-04-28 11:42 EST · Confidence: Medium
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- Citation popover -->
+<div class="cite-popover" id="cite-popover">
+  <div class="pop-title" id="pop-title"></div>
+  <div id="pop-body"></div>
+  <div class="pop-meta" id="pop-meta"></div>
+</div>
+
+<script>
+// ──────────────── Mock data ────────────────
+const cases = {
+  backlog: [
+    { id: 'C10001', source: 'TM Alert', client: 'Unassigned', due: '2026-05-02', priority: 'low', status: 'Backlog' },
+    { id: 'C10002', source: 'UTR', client: 'Unassigned', due: '2026-05-04', priority: 'med', status: 'Backlog' },
+    { id: 'C10003', source: 'Production Order', client: 'Unassigned', due: '2026-05-06', priority: 'high', status: 'Backlog' },
+    { id: 'C10004', source: 'Referral', client: 'Unassigned', due: '2026-05-08', priority: 'low', status: 'Backlog' },
+    { id: 'C10005', source: 'Negative News', client: 'Unassigned', due: '2026-05-10', priority: 'med', status: 'Backlog' },
+    { id: 'C10006', source: 'TM Alert', client: 'Unassigned', due: '2026-05-12', priority: 'high', status: 'Backlog' },
+  ],
+  inprogress: [
+    { id: 'C20001', source: 'UTR', client: 'Bob Lee', due: '2026-04-30', priority: 'low', progress: 20 },
+    { id: 'C20002', source: 'Production Order', client: 'Carlos Wong', due: '2026-05-03', priority: 'med', progress: 45 },
+    { id: 'C20003', source: 'Production Order', client: 'Dana Patel', due: '2026-05-05', priority: 'high', progress: 80, current: true },
+    { id: 'C20004', source: 'Negative News', client: 'Alice Smith', due: '2026-05-07', priority: 'low', progress: 33 },
+    { id: 'C20005', source: 'TM Alert', client: 'Bob Lee', due: '2026-05-09', priority: 'med', progress: 66 },
+    { id: 'C20006', source: 'UTR', client: 'Carlos Wong', due: '2026-05-11', priority: 'high', progress: 99 },
+  ],
+  done: [
+    { id: 'C30001', source: 'Production Order', client: 'Dana Patel', due: '2026-04-28', priority: 'low', expiry: '2026-05-09' },
+    { id: 'C30002', source: 'Referral', client: 'Alice Smith', due: '2026-04-26', priority: 'med', expiry: '2026-05-07' },
+    { id: 'C30003', source: 'Negative News', client: 'Bob Lee', due: '2026-04-25', priority: 'high', expiry: '2026-05-06' },
+    { id: 'C30004', source: 'TM Alert', client: 'Carlos Wong', due: '2026-04-23', priority: 'low', expiry: '2026-05-04' },
+    { id: 'C30005', source: 'UTR', client: 'Dana Patel', due: '2026-04-22', priority: 'med', expiry: '2026-05-03' },
+    { id: 'C30006', source: 'Production Order', client: 'Alice Smith', due: '2026-04-20', priority: 'high', expiry: '2026-05-01' },
+  ]
+};
+
+const priorityBadge = {
+  low: '<span class="badge badge-low">Low</span>',
+  med: '<span class="badge badge-med">Medium</span>',
+  high: '<span class="badge badge-high">High</span>'
+};
+
+// ──────────────── Render dashboard ────────────────
+function renderDashboard(status) {
+  const wrap = document.getElementById('dash-table-wrap');
+  const rows = cases[status];
+
+  let cols = ['Case ID', 'Source', 'Assigned to', 'Due date', 'Priority'];
+  if (status === 'inprogress') cols.push('Progress');
+  if (status === 'done') cols.push('Expires');
+  cols.push('');
+
+  let html = '<table class="cases-table"><thead><tr>';
+  cols.forEach(c => html += `<th>${c}</th>`);
+  html += '</tr></thead><tbody>';
+
+  rows.forEach(r => {
+    const isC20003 = r.id === 'C20003';
+    html += `<tr class="case-row" onclick="goCase('${r.id}')">
+      <td class="case-id-cell">${r.id}${isC20003 ? ' <span class="badge badge-ai" style="margin-left: 6px;">CAI assisted</span>' : ''}</td>
+      <td class="case-source-cell">${r.source}</td>
+      <td>${r.client}</td>
+      <td>${r.due}</td>
+      <td>${priorityBadge[r.priority]}</td>`;
+    if (status === 'inprogress') {
+      html += `<td>
+        <div style="display:flex;align-items:center;gap:var(--space-2);">
+          <div class="progress-bar"><div class="progress-fill" style="width:${r.progress}%;"></div></div>
+          <span style="font-size:13px;color:var(--text-secondary);">${r.progress}%</span>
+        </div>
+      </td>`;
+    }
+    if (status === 'done') {
+      html += `<td><span style="font-size:13px;">${r.expiry}</span><div style="font-size:12px;color:var(--color-warning);">Expires soon</div></td>`;
+    }
+    html += `<td><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text-tertiary);"><path d="M9 6l6 6-6 6"/></svg></td>`;
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  wrap.innerHTML = html;
+}
+
+function switchTab(el) {
+  document.querySelectorAll('#dash-tabs .tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderDashboard(el.dataset.status);
+}
+
+// ──────────────── Navigation ────────────────
+function showPage(id) {
+  document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
+  const target = document.getElementById(id);
+  target.classList.add('active');
+  target.classList.add('fade-in');
+  window.scrollTo({ top: 0 });
+  setTimeout(() => target.classList.remove('fade-in'), 300);
+}
+
+function goDashboard() { showPage('page-dashboard'); }
+function goCase(id) {
+  showPage('page-case');
+}
+function goEvidence() { showPage('page-evidence'); }
+function goSTRStart() {
+  showPage('page-str-info');
+  renderSTRSidebar('str-sidebar', 1);
+}
+function goSTRNarrative() {
+  showPage('page-str-narrative');
+  renderSTRSidebar('str-sidebar-2', 2);
+  renderNarrative('ready');
+}
+
+// ──────────────── STR sidebar ────────────────
+const strSteps = [
+  'Investigator Info',
+  'STR Narrative',
+  'Indicators',
+  'Facts and KYC',
+  'Transaction Activity',
+  'Context',
+  'Decision and Actions',
+  'Management Use',
+  'Divestiture',
+  'Complete STR'
+];
+
+function renderSTRSidebar(hostId, activeIndex) {
+  const host = document.getElementById(hostId);
+  let html = `<div class="case-mini">
+    <div class="case-id-mini">CASE C20003</div>
+    <div class="case-sub-mini">STR · Smith, J.</div>
+  </div><div class="step-list">`;
+  strSteps.forEach((s, i) => {
+    const cls = i === activeIndex ? 'active' : (i < activeIndex ? 'complete' : '');
+    const num = i < activeIndex ? '✓' : (i + 1);
+    html += `<button class="step ${cls}"><span class="step-num">${num}</span><span class="step-label">${s}</span></button>`;
+  });
+  html += '</div>';
+  host.innerHTML = html;
+}
+
+// ──────────────── Narrative AI flow ────────────────
+function renderNarrative(state) {
+  const host = document.getElementById('narrative-host');
+  if (state === 'ready') host.innerHTML = narrativeReadyHTML();
+  if (state === 'generating') {
+    host.innerHTML = narrativeGeneratingHTML();
+    setTimeout(() => renderNarrative('review'), 3500);
+  }
+  if (state === 'review') host.innerHTML = narrativeReviewHTML();
+}
+
+function narrativeReadyHTML() {
+  return `
+    <h1 class="wizard-h1">STR Narrative</h1>
+    <p class="wizard-h-sub">Draft the narrative section that will be filed with FINTRAC.</p>
+
+    <div class="ai-ready-card fade-in">
+      <h3>
+        <svg class="icon" style="width: 22px; height: 22px; color: var(--color-red);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        Draft with CAI
+      </h3>
+      <p style="margin: 0; color: var(--text-secondary);">CAI will read your evidence and draft a narrative for you to review. You stay the author — every claim will be cited, and you'll see what couldn't be confirmed.</p>
+
+      <div class="preview">
+        <div class="item"><span class="label">Evidence items:</span><span class="val">12 across 8 tabs</span></div>
+        <div class="item"><span class="label">Selected indicators:</span><span class="val">3 typologies</span></div>
+        <div class="item"><span class="label">KYC fields:</span><span class="val">14 from ECIF</span></div>
+        <div class="item"><span class="label">Estimated time:</span><span class="val">~25 seconds</span></div>
+      </div>
+
+      <div style="display: flex; gap: var(--space-3); align-items: center;">
+        <button class="btn btn-primary" onclick="renderNarrative('generating')">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          Draft narrative with CAI
+        </button>
+        <button class="btn btn-ghost">Write from scratch</button>
+      </div>
+      <div class="ai-disclaimer">
+        <svg class="icon" style="width: 12px; height: 12px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+        AI-generated content may be incorrect. Review every claim before filing.
+      </div>
+    </div>
+
+    <div class="wizard-footer">
+      <button class="btn btn-ghost" onclick="goSTRStart()">← Back</button>
+      <button class="btn btn-ghost" disabled>Continue →</button>
+    </div>
+  `;
+}
+
+function narrativeGeneratingHTML() {
+  return `
+    <h1 class="wizard-h1">STR Narrative</h1>
+    <p class="wizard-h-sub">CAI is drafting your narrative. This usually takes 20–30 seconds.</p>
+
+    <div class="ai-generating fade-in">
+      <div style="display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-4);">
+        <span class="ai-pulse"></span>
+        <span style="font-weight: 600;">CAI is drafting…</span>
+        <button class="btn btn-ghost btn-sm" style="margin-left: auto;" onclick="renderNarrative('ready')">Cancel</button>
+      </div>
+      <div class="gen-step complete">
+        <span class="check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>
+        Reading 12 evidence items
+      </div>
+      <div class="gen-step complete">
+        <span class="check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>
+        Cross-referencing indicators
+      </div>
+      <div class="gen-step active">
+        <span class="check"><span class="ai-pulse"></span></span>
+        Drafting narrative
+      </div>
+      <div class="gen-step">
+        <span class="check"></span>
+        Adding citations and flagging gaps
+      </div>
+    </div>
+  `;
+}
+
+function narrativeReviewHTML() {
+  return `
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-2);">
+      <h1 class="wizard-h1">STR Narrative</h1>
+      <span class="badge badge-ai">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        Drafted by CAI · awaiting your review
+      </span>
+    </div>
+    <p class="wizard-h-sub">Edit anything inline. Click a citation [n] to see its source. Resolve flagged items before continuing.</p>
+
+    <div class="review-layout">
+      <div>
+        <div class="narrative-toolbar">
+          <div style="font-size: 14px; color: var(--text-secondary);">432 words · 3 sections · 6 citations</div>
+          <div class="narrative-toolbar-actions">
+            <button class="btn btn-ghost btn-sm">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9M3 12V4m0 8h8"/></svg>
+              Try again (whole)
+            </button>
+            <button class="btn btn-ghost btn-sm">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 14L4 9l5-5M4 9h11a4 4 0 0 1 4 4v0a4 4 0 0 1-4 4H7"/></svg>
+              Undo
+            </button>
+          </div>
+        </div>
+
+        <div class="narrative-doc">
+          <h4>Details of suspicion</h4>
+          <p class="narrative-para">
+            <span class="para-actions"><button class="btn btn-ghost btn-sm">Try again</button></span>
+            Smith, J.'s personal account was identified through a Transaction Monitoring alert generated 2026-03-14 concerning rapid in-and-out wire activity inconsistent with stated occupation<span class="cite" data-cite="1" onmouseover="showCite(event, 1)" onmouseout="hideCite()">1</span>. Between 2026-01-01 and 2026-03-14, eleven inbound wires totalling CAD 487,000 were received from three unrelated third parties<span class="cite" data-cite="2" onmouseover="showCite(event, 2)" onmouseout="hideCite()">2</span>, with funds dispersed within 48 hours via outbound wires to one beneficiary in Country X<span class="cite" data-cite="3" onmouseover="showCite(event, 3)" onmouseout="hideCite()">3</span>. The pattern is consistent with funnel-account / pass-through structuring.
+          </p>
+
+          <h4>KYC context</h4>
+          <p class="narrative-para">
+            <span class="para-actions"><button class="btn btn-ghost btn-sm">Try again</button></span>
+            Client onboarded 2018-06; listed occupation: licensed plumber<span class="cite" data-cite="4" onmouseover="showCite(event, 4)" onmouseout="hideCite()">4</span>. Source of funds and source of wealth not located in current evidence; client has no prior STR<span class="cite" data-cite="5" onmouseover="showCite(event, 5)" onmouseout="hideCite()">5</span>.
+          </p>
+
+          <h4>Open source and adverse media</h4>
+          <p class="narrative-para">
+            <span class="para-actions"><button class="btn btn-ghost btn-sm">Try again</button></span>
+            Adverse media searches were performed; results yielded matches that are not a match to our client<span class="cite" data-cite="6" onmouseover="showCite(event, 6)" onmouseout="hideCite()">6</span>.
+          </p>
+        </div>
+
+        <div class="gaps-panel">
+          <h4>
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L1 21h22L12 2zM12 8v6M12 17h.01"/></svg>
+            CAI flagged 3 items for your attention
+          </h4>
+          <ul>
+            <li><strong>Source of Funds not found in the evidence.</strong> The narrative omits this — confirm or upload to the <span class="inline-link">ECIF tab</span>.</li>
+            <li><strong>No World Check screenshot uploaded.</strong> Sanctions screening is not addressed in the narrative. Add evidence to the <span class="inline-link">World Check tab</span> or note why it's not applicable.</li>
+            <li><strong>Country X is on the FATF high-risk list.</strong> The narrative notes the wire to Country X but doesn't explicitly flag the jurisdiction risk. Consider adding a sentence.</li>
+          </ul>
+          <div class="footnote">Each item links to the relevant evidence tab. Resolving an item updates the draft on the next regeneration.</div>
+        </div>
+
+        <div class="wizard-footer">
+          <button class="btn btn-ghost" onclick="goSTRStart()">← Back</button>
+          <button class="btn btn-primary" onclick="goAttest()">Continue to attestation →</button>
+        </div>
+      </div>
+
+      <aside class="evidence-rail">
+        <h4>Evidence used (12)</h4>
+        <div class="sub">Click [n] in the narrative to highlight a source.</div>
+
+        <div class="ev-item" data-ev="1"><div class="ev-cite">1</div><div class="ev-body"><div class="ev-title">Actimize alert AC-998742</div><div class="ev-meta">Triggered 2026-03-14 · Typology: Rapid Movement of Funds</div></div></div>
+        <div class="ev-item" data-ev="2"><div class="ev-cite">2</div><div class="ev-body"><div class="ev-title">Wire log — Q1 2026 inbound</div><div class="ev-meta">11 wires · CAD 487,000</div></div></div>
+        <div class="ev-item" data-ev="3"><div class="ev-cite">3</div><div class="ev-body"><div class="ev-title">Wire log — outbound detail</div><div class="ev-meta">Beneficiary: [redacted] · Country X</div></div></div>
+        <div class="ev-item" data-ev="4"><div class="ev-cite">4</div><div class="ev-body"><div class="ev-title">ECIF — client record</div><div class="ev-meta">Onboarded 2018-06</div></div></div>
+        <div class="ev-item" data-ev="5"><div class="ev-cite">5</div><div class="ev-body"><div class="ev-title">Case history</div><div class="ev-meta">No prior STR on file</div></div></div>
+        <div class="ev-item" data-ev="6"><div class="ev-cite">6</div><div class="ev-body"><div class="ev-title">Open Source — Focal Client</div><div class="ev-meta">Checkbox: "results, none match"</div></div></div>
+        <div style="font-size: 12px; color: var(--text-tertiary); margin-top: var(--space-3); padding: var(--space-2);">+ 6 more items</div>
+      </aside>
+    </div>
+  `;
+}
+
+const citeData = {
+  1: { title: 'Actimize alert AC-998742', body: 'Triggered 2026-03-14 by typology "Rapid Movement of Funds — Personal."', meta: 'Source: Actimize tab' },
+  2: { title: 'Wire log — Q1 2026 inbound', body: '11 inbound wires totalling CAD 487,000 from three unrelated third parties.', meta: 'Source: Other Supporting Evidence' },
+  3: { title: 'Wire log — outbound detail', body: 'Outbound wires to single beneficiary in Country X. Cleared within 48h of inbound.', meta: 'Source: Wires (SIU)' },
+  4: { title: 'ECIF record', body: 'Smith, J. · Onboarded 2018-06 · Listed occupation: licensed plumber.', meta: 'Source: Focal Client ECIF' },
+  5: { title: 'Case history search', body: 'No prior STR filings on this client or related ECIFs.', meta: 'Source: Hunter' },
+  6: { title: 'Adverse media checkbox', body: 'Investigator selected: "Searches yielded results that are not a match to our client."', meta: 'Source: Adverse Media tab' }
+};
+
+function showCite(e, n) {
+  const pop = document.getElementById('cite-popover');
+  document.getElementById('pop-title').textContent = citeData[n].title;
+  document.getElementById('pop-body').textContent = citeData[n].body;
+  document.getElementById('pop-meta').textContent = citeData[n].meta;
+  pop.style.left = (e.pageX + 12) + 'px';
+  pop.style.top = (e.pageY + 12) + 'px';
+  pop.classList.add('visible');
+
+  // Highlight matching evidence rail item
+  document.querySelectorAll('.ev-item').forEach(el => el.classList.remove('active'));
+  const target = document.querySelector(`.ev-item[data-ev="${n}"]`);
+  if (target) target.classList.add('active');
+}
+function hideCite() {
+  document.getElementById('cite-popover').classList.remove('visible');
+  document.querySelectorAll('.ev-item').forEach(el => el.classList.remove('active'));
+}
+
+// ──────────────── Attest ────────────────
+function goAttest() { showPage('page-attest'); }
+function toggleAttest() {
+  const c1 = document.querySelector('#attest-1 input').checked;
+  const c2 = document.querySelector('#attest-2 input').checked;
+  document.getElementById('finalize-btn').disabled = !(c1 && c2);
+}
+function selectConfidence(el) {
+  document.querySelectorAll('.conf-pill').forEach(p => p.classList.remove('selected'));
+  el.classList.add('selected');
+}
+function finalize() { showPage('page-done'); }
+
+// ──────────────── Init ────────────────
+renderDashboard('backlog');
+</script>
+
+</body>
+</html>
